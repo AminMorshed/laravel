@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Models\Article;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -26,6 +27,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+Route::prefix('admin')->group(function (){
+   Route::get('/articles/create',function (){
+       return view('admin.articles.create');
+   });
+   Route::post('/articles/create',function (Request $request){
+       Article::create([
+          'title' => request('title'),
+           'slug' => request('title'),
+           'body' => request('body'),
+       ]);
+
+       return redirect('/admin/articles/create');
+   });
 });
 
 require __DIR__.'/auth.php';

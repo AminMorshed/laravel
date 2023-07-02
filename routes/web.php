@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Profile\AvatarController;
 use App\Http\Controllers\ProfileController;
 use App\Models\Article;
 use Illuminate\Support\Facades\Route;
+use Ramsey\Uuid\Rfc4122\Validator;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,22 +28,35 @@ Route::get('/dashboard', function () {
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/profile/avatar', [AvatarController::class ,'update'])->name('profile.avatar');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::prefix('admin')->group(function (){
-   Route::get('/articles/create',function (){
-       return view('admin.articles.create');
-   });
-   Route::post('/articles/create',function (Request $request){
-       Article::create([
-          'title' => request('title'),
-           'slug' => request('title'),
-           'body' => request('body'),
-       ]);
+Route::prefix('admin')->group(callback: function () {
+    Route::get('/articles/create', function () {
+        return view('admin.articles.create');
+    });
+    Route::post('/articles/create',
+        function () {
 
-       return redirect('/admin/articles/create');
-   });
+
+            $validator = Validator::make(request()->all(), [
+                'title' => 'required',
+                'body' => 'required'
+            ]);
+
+            if ($validator->fails()) {
+                return redirect()->back()->withErrors($validator);
+            }
+
+            Article::create([
+                'title' => request('title'),
+                'slug' => request('title'),
+                'body' => request('body'),
+            ]);
+
+            return redirect('/admin/articles/create');
+        });
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
